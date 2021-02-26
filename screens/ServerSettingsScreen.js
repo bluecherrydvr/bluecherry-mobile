@@ -187,7 +187,10 @@ export default function ServerSettingsScreen({route: {params}, navigation}) {
                 setActiveAccount(accountId)
             ]);
 
-            setLoginAccountId(accountId);
+            setLoginAccountId({
+                id: accountId,
+                address, port, login, password, rtspAddress, rtspPort, name
+            });
         } catch (err) {
             Toast.show({
                 type: 'error',

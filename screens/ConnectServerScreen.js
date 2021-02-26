@@ -35,7 +35,7 @@ function ListItem({id, accountInfo, navigation, setLoading, setLoginAccountId}) 
 
                         await setActiveAccount(id);
 
-                        setLoginAccountId(id);
+                        setLoginAccountId({id, ...accountInfo});
                     } catch (err) {
                         Toast.show({
                             type: 'error',
