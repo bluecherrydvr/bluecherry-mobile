@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-               BuildableName = "BluecherryMobile-tvOS.app"
-               BlueprintName = "BluecherryMobile-tvOS"
-               ReferencedContainer = "container:BluecherryMobile.xcodeproj">
+               BuildableName = "BluecherryDvr-tvOS.app"
+               BlueprintName = "BluecherryDvr-tvOS"
+               ReferencedContainer = "container:BluecherryDvr.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E48F1E0B4A5D006451C7"
-               BuildableName = "BluecherryMobile-tvOSTests.xctest"
-               BlueprintName = "BluecherryMobile-tvOSTests"
-               ReferencedContainer = "container:BluecherryMobile.xcodeproj">
+               BuildableName = "BluecherryDvr-tvOSTests.xctest"
+               BlueprintName = "BluecherryDvr-tvOSTests"
+               ReferencedContainer = "container:BluecherryDvr.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "BluecherryMobile-tvOS.app"
-            BlueprintName = "BluecherryMobile-tvOS"
-            ReferencedContainer = "container:BluecherryMobile.xcodeproj">
+            BuildableName = "BluecherryDvr-tvOS.app"
+            BlueprintName = "BluecherryDvr-tvOS"
+            ReferencedContainer = "container:BluecherryDvr.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "BluecherryMobile-tvOS.app"
-            BlueprintName = "BluecherryMobile-tvOS"
-            ReferencedContainer = "container:BluecherryMobile.xcodeproj">
+            BuildableName = "BluecherryDvr-tvOS.app"
+            BlueprintName = "BluecherryDvr-tvOS"
+            ReferencedContainer = "container:BluecherryDvr.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -3,7 +3,7 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
-target 'BluecherryMobile' do
+target 'BluecherryDvr' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
@@ -16,7 +16,7 @@ target 'BluecherryMobile' do
 
   pod 'react-native-video', :path => '../node_modules/react-native-video/react-native-video.podspec'
 
-  target 'BluecherryMobileTests' do
+  target 'BluecherryDvrTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -31,10 +31,10 @@ target 'BluecherryMobile' do
   end
 end
 
-target 'BluecherryMobile-tvOS' do
-  # Pods for BluecherryMobile-tvOS
+target 'BluecherryDvr-tvOS' do
+  # Pods for BluecherryDvr-tvOS
 
-  target 'BluecherryMobile-tvOSTests' do
+  target 'BluecherryDvr-tvOSTests' do
     inherit! :search_paths
     # Pods for testing
   end

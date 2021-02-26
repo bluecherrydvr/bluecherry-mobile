@@ -7,11 +7,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React"
 
-@interface BluecherryMobileTests : XCTestCase
+@interface BluecherryDvrTests : XCTestCase
 
 @end
 
-@implementation BluecherryMobileTests
+@implementation BluecherryDvrTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL(^)(UIView *view))test
 {

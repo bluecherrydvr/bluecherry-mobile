@@ -1,4 +1,4 @@
-package com.bluecherrymobile;
+package com.bluecherrydvr;
 
 import com.facebook.react.ReactActivity;
 import android.content.Intent;
@@ -12,7 +12,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "BluecherryMobile";
+    return "BluecherryDvr";
   }
 
    @Override
