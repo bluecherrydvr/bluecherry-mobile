@@ -14,7 +14,9 @@ target 'BluecherryDvr' do
 
   pod 'react-native-orientation-locker', :path => '../node_modules/react-native-orientation-locker'
 
-  pod 'react-native-video', :path => '../node_modules/react-native-video/react-native-video.podspec'
+  pod 'react-native-video', :path => '../node_modules/react-native-video'
+
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   target 'BluecherryDvrTests' do
     inherit! :complete
@@ -25,7 +27,7 @@ target 'BluecherryDvr' do
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
   # you should disable these next few lines.
-  use_flipper!
+  use_flipper!({ 'Flipper-Folly' => '2.3.0' })
   post_install do |installer|
     flipper_post_install(installer)
   end
