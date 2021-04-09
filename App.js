@@ -10,7 +10,9 @@
 import 'react-native-gesture-handler';
 import SplashScreen from 'react-native-splash-screen';
 
-import React, {useEffect, useState} from 'react';
+import messaging from '@react-native-firebase/messaging';
+
+import React, {useEffect, useReducer, useRef, useCallback, useState} from 'react';
 
 import {NavigationContainer, DarkTheme, useTheme} from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -25,7 +27,7 @@ import ConnectServerScreen from './screens/ConnectServerScreen';
 import ServerSettingsScreen from './screens/ServerSettingsScreen';
 
 import SessionContext from './session-context';
-import CameraScreen from './screens/CameraScreen';
+import {CameraScreen, DirectCameraScreen} from './screens/CameraScreen';
 import EventScreen from './screens/EventScreen';
 import DrawerMenu from './menu';
 import {Button, View, Alert, Text} from 'react-native';
@@ -35,15 +37,21 @@ import { MenuProvider } from 'react-native-popup-menu';
 import {
     getAccountInfoList,
     getActiveAccountInfoByList,
-    removeAccountInfo
+    getTargetAccountByServerId,
+    removeAccountInfo,
+    getSelectedCameraList
 } from './lib/storage';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-import {checkServerCredentials} from './lib/api';
+import {checkServerCredentials, getAvailableDevices} from './lib/api';
+import {unsaveNotificationToken} from './lib/notification';
+import {handleNotification, isValidNotificationType} from './notification';
 
-function ServerRemoveButton({id, name, navigation, updateAccountList}) {
+import {initialState, reducer} from './state';
+
+function ServerRemoveButton({id, name, serverUuid, address, port, navigation, updateAccountList}) {
     return (<Button title="Remove" color="red" onPress={() => Alert.alert(
         'Server Removal Confirmation',
         'Are you sure to remove "' + name + '" server?',
@@ -51,7 +59,21 @@ function ServerRemoveButton({id, name, navigation, updateAccountList}) {
             { text: 'Cancel', style: 'cancel'},
             { text: 'Confirm', style: 'destructive',
                 onPress: async() => {
+
+                    const url = 'https://' + address + (port ? ':' + port : '');
+
+                    try {
+                        await unsaveNotificationToken(url, id, serverUuid);
+                    } catch (err) {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Notification System',
+                            text2: err.message
+                        });
+                    }
+
                     await removeAccountInfo(id);
+
                     await updateAccountList();
                     navigation.goBack();
                 }
@@ -60,77 +82,168 @@ function ServerRemoveButton({id, name, navigation, updateAccountList}) {
         {cancelable: true})} />);
 }
 
+
 const App: () => React$Node = () => {
-    const [loggedInAccountId, setLoginAccountId] = useState(null);
-    const [accountList, setAccountList] = useState([]);
+
+    const navRef = useRef(null);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const [notification, setNotification] = useState(null);
 
     const updateAccountList = async() => {
         const list = await getAccountInfoList();
-        setAccountList(list);
+        dispatch({type: 'update_account_list', payload: list});
         return list;
     };
 
+    const loginTargetAccount = useCallback((targetAccount, targetDevice) => {
+
+        if (!targetAccount) {
+            dispatch({type: 'logout'});
+            return;
+        }
+
+        const [id, accountRecord] = targetAccount;
+        const {address, login, password} = accountRecord;
+
+        checkServerCredentials('https://' + address, login, password).then(status => {
+            if (status !== false) {
+                dispatch({
+                    type: 'login',
+                    payload: {id, ...accountRecord},
+                    targetDevice
+                });
+            }
+        });
+    }, []);
+
+    const navigateTargetDevice = useCallback((deviceList, targetDevice) => {
+
+        if (!targetDevice) {
+            return;
+        }
+
+        let params = {};
+
+        if (deviceList.find(({id}) => parseInt(id) === parseInt(targetDevice))) {
+            params = {
+                screen: 'DeviceDirectPlay',
+                params: {
+                    deviceId: targetDevice
+                }
+            };
+        }
+
+        navRef.current?.navigate('DirectCamera', params);
+
+    }, []);
+
+    const onShowCamera = useCallback((deviceId) => {
+
+        navRef.current?.navigate('DirectCamera', {
+            screen: 'DeviceDirectPlay',
+            params: {
+                deviceId: deviceId
+            }
+        });
+    }, []);
+
+
+    useEffect(() => {
+        // SplashScreen.show();
+
+        const msg = messaging();
+        msg.onNotificationOpenedApp((message) => setNotification(message));
+        msg.setBackgroundMessageHandler(async message => {});
+    }, []);
+
+
     useEffect(() => {
 
-        if (!loggedInAccountId) {
+        if (!notification) {
+            return;
+        }
+
+        const {serverId, deviceId, eventType} = notification.data;
+
+        if (state.activeAccount && state.activeAccount.serverUuid === serverId) {
+            if (isValidNotificationType(eventType)) {
+                navigateTargetDevice(state.deviceList, deviceId);
+            }
+            return;
+        }
+
+        getTargetAccountByServerId(state.accountList, serverId).then(targetAccount =>
+            targetAccount && loginTargetAccount(targetAccount, isValidNotificationType(eventType) ? deviceId : null))
+
+    }, [notification]);
+
+
+    useEffect(() => {
+
+        if (!state.activeAccount) {
             Orientation.lockToPortrait();
-            // SplashScreen.show();
         }
 
         updateAccountList().then(async (accountList) => {
 
-            if (loggedInAccountId) {
-                // SplashScreen.hide();
+            if (!state.activeAccount) {
+                const initialNotification = await messaging().getInitialNotification();
+
+                if (initialNotification) {
+                    const {serverId, deviceId, eventType} = initialNotification.data;
+                    loginTargetAccount(await getTargetAccountByServerId(accountList, serverId),
+                        isValidNotificationType(eventType) ? deviceId : null);
+                } else {
+                    loginTargetAccount(await getActiveAccountInfoByList(accountList));
+                }
                 return;
             }
 
-            const activeAccount = await getActiveAccountInfoByList(accountList);
+            Promise.all([
+                getAvailableDevices(state.activeAccount),
+                getSelectedCameraList(state.activeAccount.id)
+            ]).then(([deviceList, selectedDeviceList]) => {
+                dispatch({type: 'update_all_device_list', deviceList, selectedDeviceList});
 
-            if (activeAccount) {
-                const [id, accountRecord] = activeAccount;
-                const {address, login, password} = accountRecord;
+                navigateTargetDevice(deviceList, state.targetDevice);
 
-                try {
-                    // start session with previous active session
-                    const status = await checkServerCredentials('https://' + address, login, password);
-                    if (status) {
-                        setLoginAccountId({id, ...accountRecord});
-                        return;
-                    }
-                } catch (err) {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Login Error',
-                        text2: err.message
-                    })
-                }
-            }
+            });
 
-            // SplashScreen.hide();
-        });
-    }, [loggedInAccountId]);
+        }).finally(() => SplashScreen.hide());
+
+        return handleNotification(state, onShowCamera);
+
+    }, [state.activeAccount]);
 
     return (
-        <SessionContext.Provider value={{loggedInAccountId, setLoginAccountId, accountList, updateAccountList}}>
+        <SessionContext.Provider value={{state, dispatch, updateAccountList}}>
             <MenuProvider>
-            <NavigationContainer theme={DarkTheme}>
-                {loggedInAccountId ? (
+            <NavigationContainer ref={navRef} theme={DarkTheme}>
+                {state.activeAccount ? (
                     <Drawer.Navigator drawerContent={(props) => <DrawerMenu {...props} />}>
-                        <Drawer.Screen name="Camera" component={CameraScreen} listeners={{
-                            focus: () => Orientation.lockToLandscape(),
-                            blur: () => Orientation.lockToPortrait()
+                        <Drawer.Screen name="Camera" options={{title: 'Screens'}} component={CameraScreen} listeners={{
+                            focus: () => Orientation.lockToLandscape()
                         }} />
-                        <Drawer.Screen name="Event" component={EventScreen} />
+                        <Drawer.Screen name="DirectCamera" component={DirectCameraScreen} options={{title: 'Direct Camera'}} listeners={{
+                            focus: () => Orientation.lockToLandscape()
+                        }} />
+                        <Drawer.Screen name="Event" component={EventScreen} listeners={{
+                            focus: () => Orientation.lockToPortrait()
+                        }} />
                     </Drawer.Navigator>
                 ) : (
                     <Stack.Navigator>
-                        <Stack.Screen name="Home" component={ConnectServerScreen} options={{headerShown: false}} />
+                        <Stack.Screen name="Home" component={ConnectServerScreen} options={{headerShown: false}} listeners={{
+                            focus: () => Orientation.lockToPortrait()
+                        }} />
                         <Stack.Screen name="ServerSettings" component={ServerSettingsScreen}
                                       options={({route, navigation}) =>
                                           (route.params?.id ? {title:  'Edit Server',
                                                   headerRight: () => <ServerRemoveButton {...route.params} navigation={navigation}
                                                                                          updateAccountList={updateAccountList} />}
-                                              : {title: 'Add Server'})} />
+                                              : {title: 'Add Server'})} listeners={{
+                            focus: () => Orientation.lockToPortrait()
+                        }} />
                     </Stack.Navigator>
                 )}
             </NavigationContainer>

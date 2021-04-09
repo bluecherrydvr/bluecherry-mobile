@@ -1,9 +1,9 @@
 
 import {createContext} from 'react';
+import {initialState} from './state';
 
 export default createContext({
-    loggedInAccountId: false,
-    accountList: [],
-    setLoginAccountId: () => {},
+    state: {...initialState},
+    dispatch: () => {},
     updateAccountList: () => {}
 });

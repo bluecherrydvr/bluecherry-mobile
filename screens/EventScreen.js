@@ -33,11 +33,11 @@ export default function EventScreen({navigation}) {
 
     const {height: windowHeight, width: windowWidth} = useWindowDimensions();
 
-    const {loggedInAccountId} = useContext(SessionContext);
+    const {state} = useContext(SessionContext);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        getEvents(getAddressByCredentials(loggedInAccountId)).then(([list, update]) => {
+        getEvents(getAddressByCredentials(state.activeAccount)).then(([list, update]) => {
             setEventList(list);
             setLastUpdate(update);
             setRefreshing(false);
@@ -75,7 +75,7 @@ export default function EventScreen({navigation}) {
     const targetEvent = activeItem && eventList.find(({id}) => activeItem === id);
 
     return (<View style={{flex: 1}}>
-            {targetEvent && targetEvent.content ? <Video key={targetEvent.content} controls={!loading} style={{height: playerHeight}} paused={false} resizeMode="contain" source={{uri: getAddressByCredentials(loggedInAccountId) +'/media/request.php?id=' + targetEvent.content}} onLoad={onVideoLoad} onError={onVideoError} /> : null}
+            {targetEvent && targetEvent.content ? <Video key={targetEvent.content} controls={!loading} style={{height: playerHeight}} paused={false} resizeMode="contain" source={{uri: getAddressByCredentials(state.activeAccount) +'/media/request.php?id=' + targetEvent.content}} onLoad={onVideoLoad} onError={onVideoError} /> : null}
             {activeItem && loading && <View style={{height: Math.round(windowWidth / (1.77)), alignItems: 'center', justifyContent: 'center'}}>
                 <ActivityIndicator size="large" color="white" />
                 <Text style={{color: 'white'}}>Event ({activeItem}) is opening</Text>

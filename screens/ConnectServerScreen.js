@@ -1,5 +1,5 @@
 
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext} from 'react';
 import {Button, Image, View, FlatList, Text, ActivityIndicator} from 'react-native';
 
 import Toast from 'react-native-toast-message';
@@ -11,9 +11,9 @@ import {checkServerCredentials} from '../lib/api';
 import SessionContext from '../session-context';
 
 
-function ListItem({id, accountInfo, navigation, setLoading, setLoginAccountId}) {
+function ListItem({id, accountInfo, navigation, setLoading, updateActiveAccount}) {
 
-    const {name, address, login, password} = accountInfo;
+    const {name, address, port, login, password} = accountInfo;
 
     return (<View style={{flexDirection: 'row'}}>
         <View style={{flex: 1, padding: 5}}>
@@ -25,9 +25,11 @@ function ListItem({id, accountInfo, navigation, setLoading, setLoginAccountId}) 
 
                     setLoading(true);
 
+                    const url = 'https://' + address + (port ? ':' + port : '')
+
                     try {
-                        const status = await checkServerCredentials('https://' + address, login, password);
-                        if (!status) {
+                        const status = await checkServerCredentials(url, login, password);
+                        if (status === false) {
                             // show edit server screen
                             setLoading(false);
                             return;
@@ -35,7 +37,7 @@ function ListItem({id, accountInfo, navigation, setLoading, setLoginAccountId}) 
 
                         await setActiveAccount(id);
 
-                        setLoginAccountId({id, ...accountInfo});
+                        updateActiveAccount({id, ...accountInfo});
                     } catch (err) {
                         Toast.show({
                             type: 'error',
@@ -64,7 +66,7 @@ export default function ConnectServerScreen({navigation}) {
     // const {colors} = useTheme();
 
     const [loading, setLoading] = useState(false);
-    const {setLoginAccountId, accountList} = useContext(SessionContext);
+    const {state, dispatch} = useContext(SessionContext);
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
@@ -73,11 +75,12 @@ export default function ConnectServerScreen({navigation}) {
                 <ActivityIndicator size="large" color="white" /> :
                 <><View style={{backgroundColor: '#222222', alignSelf: 'stretch', marginLeft: 10, marginRight: 10, marginBottom:15}}>
                         <FlatList
-                            data={accountList}
+                            data={state.accountList}
                             renderItem={({item: [id, accountInfo]}) => <ListItem id={id} accountInfo={accountInfo}
                                                                                  navigation={navigation}
                                                                                  setLoading={setLoading}
-                                                                                 setLoginAccountId={setLoginAccountId}/>}
+                                                                                 updateActiveAccount={(activeAccount) =>
+                                                                                     dispatch({type: 'login', payload: activeAccount})}/>}
                             keyExtractor={([id]) => id} />
                     </View>
                     <Button

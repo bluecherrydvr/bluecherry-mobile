@@ -13,11 +13,11 @@ import SessionContext from './session-context';
 
 export default function DrawerMenu(props) {
     return (
-        <SessionContext.Consumer>{({setLoginAccountId}) => <DrawerContentScrollView {...props}>
+        <SessionContext.Consumer>{({dispatch}) => <DrawerContentScrollView {...props}>
             <DrawerItemList {...props} />
             <DrawerItem label="Logout" onPress={async() => {
                 await unsetActiveAccount();
-                setLoginAccountId(null);
+                dispatch({type: 'logout'});
             }} />
         </DrawerContentScrollView>}</SessionContext.Consumer>
     );

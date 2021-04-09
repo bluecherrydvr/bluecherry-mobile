@@ -9,9 +9,12 @@ import styles from '../stylesheet';
 import SessionContext from '../session-context';
 
 import {checkServerCredentials} from '../lib/api';
+import {saveNotificationToken} from '../lib/notification';
 import {getFreshAccountId, setAccountInfo, setActiveAccount} from '../lib/storage';
 
+
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import messaging from "@react-native-firebase/messaging";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -52,23 +55,23 @@ function BasicInfoView() {
             <View style={{padding: 10}}>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Address:</Text>
-                    <TextInput style={inputStyle}
-                               onChangeText={address => onChangeAddress(address)} value={address} disabled={disabled} />
+                    <TextInput style={inputStyle} value={address} disabled={disabled} autoCapitalize="none"
+                               onChangeText={address => onChangeAddress(address)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Login:</Text>
-                    <TextInput style={inputStyle}
-                               onChangeText={login => onChangeLogin(login)} value={login} disabled={disabled} />
+                    <TextInput style={inputStyle} value={login} disabled={disabled} autoCapitalize="none"
+                               onChangeText={login => onChangeLogin(login)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Password:</Text>
-                    <TextInput style={inputStyle}
-                               onChangeText={password => onChangePassword(password)} value={password} disabled={disabled} />
+                    <TextInput style={inputStyle} value={password} disabled={disabled} autoCapitalize="none"
+                               onChangeText={password => onChangePassword(password)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Name:</Text>
-                    <TextInput style={inputStyle}
-                               onChangeText={name => onChangeName(name)} value={name} disabled={disabled} />
+                    <TextInput style={inputStyle} value={name} disabled={disabled}
+                               onChangeText={name => onChangeName(name)}/>
                 </View>
                 <View style={{alignItems: 'center', marginTop: 10}}>
                     <Button title={id ? 'Save' : 'Connect'} onPress={() => onSubmit(address, login, password, name, setDisabled)}
@@ -79,7 +82,7 @@ function BasicInfoView() {
     );
 }
 
-function AdvancedInfoView() {
+function AdvancedInfoView({navigation}) {
 
     const {
         disabled,
@@ -101,8 +104,8 @@ function AdvancedInfoView() {
             <View style={{padding: 10}}>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Address:</Text>
-                    <TextInput style={inputStyle}
-                               onChangeText={address => onChangeAddress(address)} value={address} disabled={disabled} />
+                    <TextInput style={inputStyle} value={address} disabled={disabled}
+                               onChangeText={address => onChangeAddress(address)} autoCapitalize="none" />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Port:</Text>
@@ -112,17 +115,23 @@ function AdvancedInfoView() {
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>RTSP Server Address:</Text>
                     <TextInput style={inputStyle} value={rtspAddress} disabled={disabled} defaultValue={address}
-                               onChangeText={rtspAddress => onChangeRtspAddress(rtspAddress)} />
+                               onChangeText={rtspAddress => onChangeRtspAddress(rtspAddress)} autoCapitalize="none" />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>RTSP Server Port:</Text>
                     <TextInput style={inputStyle} value={rtspPort} disabled={disabled} keyboardType="numeric"
                                onChangeText={rtspPort => onChangeRtspPort(rtspPort)}/>
                 </View>
+                <View style={{alignItems: 'center', marginTop: 10}}>
+                    <Button title="Complete" onPress={() => navigation.navigate('Basic')}
+                            disabled={!address} />
+                </View>
             </View>
         </View>
     );
 }
+
+
 
 export default function ServerSettingsScreen({route: {params}, navigation}) {
 
@@ -151,52 +160,63 @@ export default function ServerSettingsScreen({route: {params}, navigation}) {
 
     const [disabled, setDisabled] = useState(false);
 
-    const saveAccountInfo = (id) => setAccountInfo(id, {
+    const saveAccountInfo = (id, serverUuid) => setAccountInfo(id, {
         address, port,
         login, password,
         rtspAddress, rtspPort,
-        name
+        name, serverUuid
     });
 
-    const {setLoginAccountId, updateAccountList} = useContext(SessionContext);
+    const {dispatch, updateAccountList} = useContext(SessionContext);
 
     const onSubmit = async () => {
 
         const url = 'https://' + address + (port ? ':' + port : '');
 
         setDisabled(true);
-        const status = await checkServerCredentials(url, login, password,
+        const serverUuid = await checkServerCredentials(url, login, password,
             id ? 'Credentials OK' : 'Connection Successful');
 
-        if (!status) {
+        if (serverUuid === false) {
             setDisabled(false);
             return;
         }
 
         try {
             if (id) {
-                await saveAccountInfo(id);
+                await saveAccountInfo(id, serverUuid);
                 await updateAccountList();
                 navigation.goBack();
                 return;
             }
 
             const accountId = await getFreshAccountId();
+
             await Promise.all([
-                saveAccountInfo(accountId),
+                saveAccountInfo(accountId, serverUuid),
                 setActiveAccount(accountId)
             ]);
 
-            setLoginAccountId({
-                id: accountId,
-                address, port, login, password, rtspAddress, rtspPort, name
-            });
+            try {
+                const token = await messaging().getToken();
+                await saveNotificationToken(url, accountId, serverUuid, token);
+            } catch (err) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Notification System',
+                    text2: err.message
+                });
+            }
+
+            dispatch({type: 'login', payload: {
+                id: accountId, address, port, login, password, rtspAddress, rtspPort, name
+            }});
         } catch (err) {
             Toast.show({
                 type: 'error',
                 text1: 'Storage Error',
                 text2: err.message
-            })
+            });
         }
     };
 

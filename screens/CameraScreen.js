@@ -1,5 +1,5 @@
 
-import React, {useEffect, useState, useCallback, useContext, useRef, createContext} from 'react';
+import React, {useEffect, useState, useCallback, useContext} from 'react';
 import {View, Text, TouchableOpacity, FlatList, ActivityIndicator} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -10,8 +10,7 @@ import {
     MenuTrigger,
 } from 'react-native-popup-menu';
 
-import {getDevices} from '../lib/api';
-import {getSelectedCameraList, setSelectedCamera} from '../lib/storage';
+import {setSelectedCamera} from '../lib/storage';
 
 import { VLCPlayer } from 'react-native-vlc-media-player';
 
@@ -19,26 +18,24 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import SessionContext from '../session-context';
 
-import {getAddressByCredentials, getRtspAddressByCredentials} from '../lib/util';
+import {getRtspAddressByCredentials} from '../lib/util';
 
 const Stack = createStackNavigator();
 
-const CameraScreenContext = createContext({
-    devices: [],
-    setDevices: () => {},
-    selectedDevices: [],
-    setSelectedDevices: () => {}
-});
+function PlayerError({onPress}) {
+    return (<View style={{flex: 1}}>
+        <TouchableOpacity style={{flex:1, alignItems: 'center',
+            justifyContent: 'center', backgroundColor: 'red'}} onPress={onPress}>
+            <Icon name="broken-image" size={90} color="#ffffff" />
+        </TouchableOpacity>
+    </View>);
+}
 
 function Player({uri}) {
     const [error, setError] = useState(false);
 
     if (error) {
-        return (<View style={{flex: 1}}>
-            <TouchableOpacity style={{flex:1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'red'}} onPress={() => setError(false)}>
-                <Icon name="broken-image" size={90} color="#ffffff" />
-            </TouchableOpacity>
-        </View>);
+        return <PlayerError onPress={() => setError(false)} />;
     }
 
     return (<VLCPlayer
@@ -72,21 +69,19 @@ function SinglePlayerSection({type = 0, index = 0, onChange, onRemove, screenDev
     const device = screenDevices[type][index];
 
     if (device) {
-        const menu = useRef(null);
-
         return (<View style={{flex: 1}}>
             <Player uri={rtspUrl + '/live/' + device.id} />
-                <Menu ref={menu}  style={{backgroundColor: '#333333', position: 'absolute', right: 10, top: 10, padding: 5,  borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}}>
-                    <MenuTrigger>
-                        <Icon name="tune" size={20} color="#ffffff" />
-                    </MenuTrigger>
-                    <MenuOptions>
-                        <MenuOption text="Change" onSelect={() => onChange(type, index)} />
-                        <MenuOption text="Remove" onSelect={() => onRemove(type, index)} />
-                        <View style={{marginVertical: 5, marginHorizontal: 2, borderBottomWidth: 1, borderColor: '#cccccc'}}/>
-                        <MenuOption text={'Device: ' + device.device_name } disabled={true} />
-                    </MenuOptions>
-                </Menu>
+            <Menu style={{backgroundColor: '#333333', position: 'absolute', right: 10, top: 10, padding: 5,  borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}}>
+                <MenuTrigger>
+                    <Icon name="tune" size={20} color="#ffffff" />
+                </MenuTrigger>
+                <MenuOptions>
+                    <MenuOption text="Change" onSelect={() => onChange(type, index)} />
+                    <MenuOption text="Remove" onSelect={() => onRemove(type, index)} />
+                    <View style={{marginVertical: 5, marginHorizontal: 2, borderBottomWidth: 1, borderColor: '#cccccc'}}/>
+                    <MenuOption text={'Device: ' + device.device_name } disabled={true} />
+                </MenuOptions>
+            </Menu>
         </View>);
     }
 
@@ -122,13 +117,12 @@ function ScreenButton({onPress, name, active = false}) {
 function PlayerScreen({navigation}) {
 
     const [activeScreen, setActiveScreen] = useState(0);
-    const {loggedInAccountId} = useContext(SessionContext);
-    const {devices, selectedDevices, setSelectedDevices} = useContext(CameraScreenContext);
+    const {state, dispatch} = useContext(SessionContext);
 
-    const screenDevices = selectedDevices.map(screens =>
-        screens.map(deviceId => deviceId && devices.find(({id}) => id === deviceId)));
+    const screenDevices = state.selectedDeviceList.map(screens =>
+        screens.map(deviceId => deviceId && state.deviceList.find(({id}) => id === deviceId)));
 
-    const rtspUrl = getRtspAddressByCredentials(loggedInAccountId);
+    const rtspUrl = getRtspAddressByCredentials(state.activeAccount);
 
     const onAddCamera = useCallback((type, index) =>
         navigation.navigate('DeviceSetCamera', {
@@ -136,8 +130,9 @@ function PlayerScreen({navigation}) {
         }), []);
 
     const onRemoveCamera = useCallback(async (type, index) => {
-        const selectedDevices = await setSelectedCamera(loggedInAccountId.id, type, index, null, selectedDevices);
-        setSelectedDevices(selectedDevices);
+        const selectedDeviceList = await setSelectedCamera(state.activeAccount.id, type, index,
+            null, state.selectedDeviceList);
+        dispatch({type: 'update_selected_device_list', payload: selectedDeviceList});
     }, []);
 
     const screens = [
@@ -155,49 +150,84 @@ function PlayerScreen({navigation}) {
     </View>);
 }
 
+function DirectPlayScreen({route: {params: {deviceId}}, navigation}) {
+
+    const {state} = useContext(SessionContext);
+
+    const device = state.deviceList.find(({id}) => parseInt(id) === parseInt(deviceId));
+
+    if (!device) {
+        return <PlayerError onPress={() => navigation.navigate('DeviceShowCamera')} />;
+    }
+
+    const rtspUrl = getRtspAddressByCredentials(state.activeAccount);
+
+    return (<View style={{flex: 1}}>
+        <Player key={'device_' + device.id} uri={rtspUrl + '/live/' + device.id} />
+        <Menu style={{backgroundColor: '#333333', position: 'absolute', right: 10, top: 10, padding: 5,  borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}}>
+            <MenuTrigger>
+                <Icon name="tune" size={20} color="#ffffff" />
+            </MenuTrigger>
+            <MenuOptions>
+                <MenuOption text="Close" onSelect={() => navigation.navigate('DeviceShowCamera')} />
+                <View style={{marginVertical: 5, marginHorizontal: 2, borderBottomWidth: 1, borderColor: '#cccccc'}}/>
+                <MenuOption text={'Device: ' + device.device_name } disabled={true} />
+            </MenuOptions>
+        </Menu>
+    </View>);
+}
+
 function SetCameraScreen({route: {params: {index, type}}, navigation}) {
 
     const [loading, setLoading] = useState(false);
-    const {loggedInAccountId: {id: accountId}} = useContext(SessionContext);
-    const {devices, selectedDevices, setSelectedDevices} = useContext(CameraScreenContext);
+    const {state, dispatch} = useContext(SessionContext);
 
     const onSelectCamera = useCallback(async (id) => {
         setLoading(true);
 
-        const selectedDevices = await setSelectedCamera(accountId, type, index, id, selectedDevices);
-        setSelectedDevices(selectedDevices);
+        const selectedDeviceList = await setSelectedCamera(state.activeAccount.id, type,
+            index, id, state.selectedDeviceList);
+        dispatch({type: 'update_selected_device_list', payload: selectedDeviceList});
         navigation.goBack();
 
     }, []);
 
     return <View style={{flex: 1, justifyContent: 'center'}}>
-        {loading ? <ActivityIndicator size="large" color="white"  /> : <FlatList data={devices} keyExtractor={({id}) => '' + id} renderItem={({item: {id, device_name}}) =>
+        {loading ? <ActivityIndicator size="large" color="white"  /> : <FlatList data={state.deviceList} keyExtractor={({id}) => '' + id} renderItem={({item: {id, device_name}}) =>
             <TouchableOpacity style={{marginTop: 5, paddingLeft: 10, paddingRight: 10, paddingTop: 15,
                 paddingBottom: 15, backgroundColor: '#333333'}} onPress={() => onSelectCamera(id)}>
                 <Text style={{color: 'white'}}>#{id} - {device_name}</Text></TouchableOpacity>} />}
     </View>;
 }
 
-export default function CameraScreen({navigation}) {
+function ShowCameraScreen({navigation}) {
 
-    const {loggedInAccountId} = useContext(SessionContext);
-    const [devices, setDeviceList] = useState([]);
-    const [selectedDevices, setSelectedDevices] = useState([[null], [null, null], [null, null, null, null]]);
+    const {state} = useContext(SessionContext);
 
-    useEffect(() => {
-        getDevices(getAddressByCredentials(loggedInAccountId))
-            .then(devices => devices.filter(({status}) => status === 'OK'))
-            .then(devices => devices.map(({id, device_name}) => ({id, device_name})))
-            .then(devices => setDeviceList(devices));
-
-        getSelectedCameraList(loggedInAccountId.id).then(cameraList => setSelectedDevices(cameraList));
-    }, []);
-
-    return (
-        <CameraScreenContext.Provider value={{devices, setDeviceList, selectedDevices, setSelectedDevices}}>
-            <Stack.Navigator>
-                <Stack.Screen name="DevicePlayer" component={PlayerScreen} options={{headerShown: false}} />
-                <Stack.Screen name="DeviceSetCamera" options={{title: 'Set Camera to Screen'}} component={SetCameraScreen} />
-            </Stack.Navigator>
-        </CameraScreenContext.Provider>);
+    return <View style={{flex: 1, justifyContent: 'center'}}>
+        <FlatList data={state.deviceList} keyExtractor={({id}) => '' + id} renderItem={({item: {id, device_name}}) =>
+            <TouchableOpacity style={{marginTop: 5, paddingLeft: 10, paddingRight: 10, paddingTop: 15,
+                paddingBottom: 15, backgroundColor: '#333333'}} onPress={() => {
+                navigation.navigate('DeviceDirectPlay', {
+                    deviceId: id
+                })
+            }}>
+                <Text style={{color: 'white'}}>#{id} - {device_name}</Text></TouchableOpacity>} />
+    </View>;
 }
+
+export function CameraScreen() {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen name="DevicePlayer" component={PlayerScreen} options={{headerShown: false}} />
+            <Stack.Screen name="DeviceSetCamera" options={{title: 'Set Camera to Screen'}} component={SetCameraScreen} />
+        </Stack.Navigator>);
+}
+
+export function DirectCameraScreen() {
+    return (<Stack.Navigator>
+            <Stack.Screen name="DeviceShowCamera" options={{title: 'Show Camera'}} component={ShowCameraScreen} />
+            <Stack.Screen name="DeviceDirectPlay" component={DirectPlayScreen} options={{headerShown: false}} />
+        </Stack.Navigator>);
+}
+
