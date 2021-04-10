@@ -98,7 +98,7 @@ const App: () => React$Node = () => {
     const loginTargetAccount = useCallback((targetAccount, targetDevice) => {
 
         if (!targetAccount) {
-            dispatch({type: 'logout'});
+            SplashScreen.hide();
             return;
         }
 
@@ -119,8 +119,11 @@ const App: () => React$Node = () => {
     const navigateTargetDevice = useCallback((deviceList, targetDevice) => {
 
         if (!targetDevice) {
+            SplashScreen.hide();
             return;
         }
+
+        SplashScreen.show();
 
         let params = {};
 
@@ -139,6 +142,8 @@ const App: () => React$Node = () => {
 
     const onShowCamera = useCallback((deviceId) => {
 
+        SplashScreen.show();
+
         navRef.current?.navigate('DirectCamera', {
             screen: 'DeviceDirectPlay',
             params: {
@@ -149,7 +154,7 @@ const App: () => React$Node = () => {
 
 
     useEffect(() => {
-        // SplashScreen.show();
+        SplashScreen.show();
 
         const msg = messaging();
         msg.onNotificationOpenedApp((message) => setNotification(message));
@@ -172,8 +177,16 @@ const App: () => React$Node = () => {
             return;
         }
 
-        getTargetAccountByServerId(state.accountList, serverId).then(targetAccount =>
-            targetAccount && loginTargetAccount(targetAccount, isValidNotificationType(eventType) ? deviceId : null))
+        dispatch({type: 'logout'});
+
+        getTargetAccountByServerId(state.accountList, serverId).then(targetAccount => {
+
+            if (!targetAccount) {
+                return;
+            }
+
+            loginTargetAccount(targetAccount, isValidNotificationType(eventType) ? deviceId : null);
+        });
 
     }, [notification]);
 
@@ -187,8 +200,8 @@ const App: () => React$Node = () => {
         updateAccountList().then(async (accountList) => {
 
             if (!state.activeAccount) {
-                const initialNotification = await messaging().getInitialNotification();
 
+                const initialNotification = await messaging().getInitialNotification();
                 if (initialNotification) {
                     const {serverId, deviceId, eventType} = initialNotification.data;
                     loginTargetAccount(await getTargetAccountByServerId(accountList, serverId),
@@ -209,7 +222,7 @@ const App: () => React$Node = () => {
 
             });
 
-        }).finally(() => SplashScreen.hide());
+        });
 
         return handleNotification(state, onShowCamera);
 
@@ -222,13 +235,13 @@ const App: () => React$Node = () => {
                 {state.activeAccount ? (
                     <Drawer.Navigator drawerContent={(props) => <DrawerMenu {...props} />}>
                         <Drawer.Screen name="Camera" options={{title: 'Screens'}} component={CameraScreen} listeners={{
-                            focus: () => Orientation.lockToLandscape()
+                            focus: () => {SplashScreen.hide(); Orientation.lockToLandscape()}
                         }} />
                         <Drawer.Screen name="DirectCamera" component={DirectCameraScreen} options={{title: 'Direct Camera'}} listeners={{
-                            focus: () => Orientation.lockToLandscape()
+                            focus: () => {SplashScreen.hide(); Orientation.lockToLandscape()}
                         }} />
                         <Drawer.Screen name="Event" component={EventScreen} listeners={{
-                            focus: () => Orientation.lockToPortrait()
+                            focus: () => {SplashScreen.hide(); Orientation.lockToLandscape()}
                         }} />
                     </Drawer.Navigator>
                 ) : (

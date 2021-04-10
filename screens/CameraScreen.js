@@ -2,6 +2,7 @@
 import React, {useEffect, useState, useCallback, useContext} from 'react';
 import {View, Text, TouchableOpacity, FlatList, ActivityIndicator} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import SplashScreen from 'react-native-splash-screen';
 
 import {
     Menu,
@@ -155,6 +156,10 @@ function DirectPlayScreen({route: {params: {deviceId}}, navigation}) {
     const {state} = useContext(SessionContext);
 
     const device = state.deviceList.find(({id}) => parseInt(id) === parseInt(deviceId));
+
+    useEffect(() => {
+        SplashScreen.hide();
+    });
 
     if (!device) {
         return <PlayerError onPress={() => navigation.navigate('DeviceShowCamera')} />;

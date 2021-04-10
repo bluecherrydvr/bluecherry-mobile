@@ -1,8 +1,7 @@
 
 import messaging from '@react-native-firebase/messaging';
-import Toast from "react-native-toast-message";
-import {saveNotificationToken} from "./lib/notification";
-import {getTargetAccountByServerId} from "./lib/storage";
+import Toast from 'react-native-toast-message';
+import {saveNotificationToken} from './lib/notification';
 
 const validNotificationTypes = new Map([
     ['device_state', 'Device State Event'],
@@ -59,7 +58,7 @@ export function isValidNotificationType(type) {
 export function handleNotification(state, onShowCamera) {
 
     const messageHandlerCleanup = messaging().onMessage(async message => {
-        if (message.data.serverId === state.activeAccount.serverUuid) {
+        if (state.activeAccount && message.data.serverId === state.activeAccount.serverUuid) {
             showInAppNotification(message, onShowCamera);
         }
     });
