@@ -1,16 +1,39 @@
 
-import React, {useEffect, useState, useCallback, useContext} from 'react';
-import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, {useEffect, useState, useCallback, useContext, useRef} from 'react';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
 import {getEvents} from '../lib/api';
 
 import {getAddressByCredentials} from '../lib/util';
 
-import Video from 'react-native-video';
+import PlayerError from '../components/PlayerError';
+
+import { VLCPlayer } from 'react-native-vlc-media-player';
 
 import SessionContext from '../session-context';
 
-import Toast from 'react-native-toast-message';
+import {Menu, MenuOption, MenuOptions, MenuTrigger} from "react-native-popup-menu";
+import Icon from "react-native-vector-icons/MaterialIcons";
+
+const Stack = createStackNavigator();
+
+function Player({uri}) {
+    const [error, setError] = useState(false);
+    const [stopped, setStopped] = useState(false);
+
+    const player = useRef(null);
+
+    if (error) {
+        return <PlayerError onPress={() => setError(false)} />;
+    }
+
+    if (stopped) {
+        return <TouchableOpacity onPress={() => setStopped(false)} style={{backgroundColor: '#333333', flex: 1, alignItems: 'center', justifyContent: 'center'}}><Icon name="replay" size={90} color="#ffffff" /></TouchableOpacity>;
+    }
+
+    return <VLCPlayer ref={player} source={{uri}} autoplay={true} autoAspectRatio={true} resizeMode="contain"
+                      onError={() => setError(true)} style={{flex: 1}} onStopped={() => setStopped(true)} />;
+}
 
 function EventButton({id, title, published, updated, active, current}) {
     return (<View style={{backgroundColor: active ? (current ? '#007700' : '#777777') : '#333333',
@@ -22,18 +45,14 @@ function EventButton({id, title, published, updated, active, current}) {
     </View>);
 }
 
-export default function EventScreen({navigation}) {
 
-    const [activeItem, setActiveItem] = useState();
+function EventList({navigation}) {
+
+    const {state} = useContext(SessionContext);
+
     const [lastUpdate, setLastUpdate] = useState();
     const [eventList, setEventList] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
-    const [playerHeight, setPlayerHeight] = useState(0);
-    const [loading, setLoading] = useState(false);
-
-    const {height: windowHeight, width: windowWidth} = useWindowDimensions();
-
-    const {state} = useContext(SessionContext);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
@@ -42,66 +61,52 @@ export default function EventScreen({navigation}) {
             setLastUpdate(update);
             setRefreshing(false);
         });
-    }, []);
+    }, [state.activeAccount]);
 
     useEffect(() => {
         onRefresh();
     }, []);
 
-    const onVideoLoad = useCallback(({naturalSize: {width, height}}) => {
-        setLoading(false);
-        setPlayerHeight(Math.round(windowWidth / (width / height)));
-    }, [activeItem]);
+    return (<View style={{flex: 1}}>
+        {lastUpdate && (<View style={{flexDirection: 'row', padding: 10, backgroundColor: '#333333'}}>
+            <Text style={{color: 'white'}}>Last Update:</Text><Text style={{color: 'white', marginLeft: 10}}>{lastUpdate}</Text>
+        </View>)}
+        <View style={{flex: 1}}><FlatList
+            data={eventList}
+            keyExtractor={({id}) => id}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            renderItem={({item}) => (<TouchableOpacity onPress={() =>
+                navigation.navigate('EventVideoPlayer', {eventId: item.content})}>
+                        <EventButton {...item} /></TouchableOpacity>)}/></View>
+    </View>);
+}
 
-    const onVideoError = useCallback(() => {
+function EventVideoPlayer({route: {params: {eventId}}, navigation}) {
 
-        Toast.show({
-            type: 'error',
-            text1: 'Video Error'
-        })
+    const {state} = useContext(SessionContext);
 
-        setLoading(false);
-        setPlayerHeight(0);
-
-    }, [activeItem]);
-
-    useFocusEffect(useCallback(() => {
-        return () => {
-            setActiveItem(null);
-            setLoading(false);
-        }
-    }, []));
-
-    const targetEvent = activeItem && eventList.find(({id}) => activeItem === id);
+    if (!eventId) {
+        return <PlayerError onPress={() => navigation.navigate('EventList')} />;
+    }
 
     return (<View style={{flex: 1}}>
-            {targetEvent && targetEvent.content ? <Video key={targetEvent.content} controls={!loading} style={{height: playerHeight}} paused={false} resizeMode="contain" source={{uri: getAddressByCredentials(state.activeAccount) +'/media/request.php?id=' + targetEvent.content}} onLoad={onVideoLoad} onError={onVideoError} /> : null}
-            {activeItem && loading && <View style={{height: Math.round(windowWidth / (1.77)), alignItems: 'center', justifyContent: 'center'}}>
-                <ActivityIndicator size="large" color="white" />
-                <Text style={{color: 'white'}}>Event ({activeItem}) is opening</Text>
-            </View>}
-            {lastUpdate && (<View style={{flexDirection: 'row', padding: 10, backgroundColor: '#333333'}}>
-                <Text style={{color: 'white'}}>Last Update:</Text><Text style={{color: 'white', marginLeft: 10}}>{lastUpdate}</Text>
-            </View>)}
-            <View style={{flex: 1}}><FlatList
-                data={eventList}
-                keyExtractor={({id}) => id}
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                renderItem={({item}) => (item.content ?
-                    (<TouchableOpacity onPress={() => {
-                        setPlayerHeight(0);
-                        if (activeItem && activeItem === item.id) {
-                            setLoading(false);
-                            setActiveItem(null);
-                        } else {
-                            setLoading(true);
-                            setActiveItem(item.id);
-                        }
-                    }}>
-                        <EventButton {...item} active={true} current={item.id === activeItem} /></TouchableOpacity>) :
-                    (<EventButton {...item} active={false} current={item.id === activeItem} />)
-                )}
-            /></View>
+        <Player key={'event_video_' + eventId} uri={getAddressByCredentials(state.activeAccount, true) +'/media/request.php?id=' + eventId} />
+        <Menu style={{backgroundColor: '#333333', position: 'absolute', right: 10, top: 10, padding: 5,
+            borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}}>
+            <MenuTrigger>
+                <Icon name="tune" size={20} color="#ffffff" />
+            </MenuTrigger>
+            <MenuOptions>
+                <MenuOption text="Events" onSelect={() => navigation.navigate('EventList')} />
+            </MenuOptions>
+        </Menu>
     </View>);
+}
+
+export default function EventScreen() {
+    return (<Stack.Navigator>
+        <Stack.Screen name="EventList" options={{title: 'Events'}} component={EventList} />
+        <Stack.Screen name="EventVideoPlayer" options={{headerShown: false}} component={EventVideoPlayer} />
+    </Stack.Navigator>);
 }

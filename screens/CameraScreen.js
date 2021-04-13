@@ -21,16 +21,10 @@ import SessionContext from '../session-context';
 
 import {getRtspAddressByCredentials} from '../lib/util';
 
+import PlayerError from '../components/PlayerError';
+
 const Stack = createStackNavigator();
 
-function PlayerError({onPress}) {
-    return (<View style={{flex: 1}}>
-        <TouchableOpacity style={{flex:1, alignItems: 'center',
-            justifyContent: 'center', backgroundColor: 'red'}} onPress={onPress}>
-            <Icon name="broken-image" size={90} color="#ffffff" />
-        </TouchableOpacity>
-    </View>);
-}
 
 function Player({uri}) {
     const [error, setError] = useState(false);
@@ -159,7 +153,7 @@ function DirectPlayScreen({route: {params: {deviceId}}, navigation}) {
 
     useEffect(() => {
         SplashScreen.hide();
-    });
+    }, []);
 
     if (!device) {
         return <PlayerError onPress={() => navigation.navigate('DeviceShowCamera')} />;
@@ -232,7 +226,7 @@ export function CameraScreen() {
 export function DirectCameraScreen() {
     return (<Stack.Navigator>
             <Stack.Screen name="DeviceShowCamera" options={{title: 'Show Camera'}} component={ShowCameraScreen} />
-            <Stack.Screen name="DeviceDirectPlay" component={DirectPlayScreen} options={{headerShown: false}} />
+            <Stack.Screen name="DeviceDirectPlay" options={{headerShown: false}}  component={DirectPlayScreen} />
         </Stack.Navigator>);
 }
 
