@@ -2,7 +2,7 @@
 import React, {useState, useContext, createContext} from 'react';
 
 import {useTheme} from '@react-navigation/native';
-import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Button, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform} from 'react-native';
 import Toast from 'react-native-toast-message';
 import styles from '../stylesheet';
 
@@ -51,22 +51,22 @@ function BasicInfoView() {
         color: colors.text}]);
 
     return (
-        <View style={{ flex: 1, alignItems: 'stretch', justifyContent: 'center' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, alignItems: 'stretch', justifyContent: 'center' }}>
             <View style={{padding: 10}}>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Address:</Text>
                     <TextInput style={inputStyle} value={address} disabled={disabled} autoCapitalize="none"
-                               onChangeText={address => onChangeAddress(address)} />
+                               autoCorrect={false} autoCompleteType="off" onChangeText={address => onChangeAddress(address)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Login:</Text>
                     <TextInput style={inputStyle} value={login} disabled={disabled} autoCapitalize="none"
-                               onChangeText={login => onChangeLogin(login)} />
+                               autoCorrect={false} autoCompleteType="off" onChangeText={login => onChangeLogin(login)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Password:</Text>
                     <TextInput style={inputStyle} value={password} disabled={disabled} autoCapitalize="none"
-                               onChangeText={password => onChangePassword(password)} />
+                               autoCorrect={false} onChangeText={password => onChangePassword(password)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Name:</Text>
@@ -78,7 +78,7 @@ function BasicInfoView() {
                             disabled={disabled || !address || !login || !password || !name} />
                 </View>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -100,34 +100,34 @@ function AdvancedInfoView({navigation}) {
         color: colors.text}]);
 
     return (
-        <View style={{ flex: 1, alignItems: 'stretch', justifyContent: 'center' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, alignItems: 'stretch', justifyContent: 'center' }}>
             <View style={{padding: 10}}>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Address:</Text>
                     <TextInput style={inputStyle} value={address} disabled={disabled}
-                               onChangeText={address => onChangeAddress(address)} autoCapitalize="none" />
+                               autoCorrect={false} autoCompleteType="off" onChangeText={address => onChangeAddress(address)} autoCapitalize="none" />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>Server Port:</Text>
                     <TextInput style={inputStyle} value={port} disabled={disabled} keyboardType="numeric"
-                               onChangeText={port => onChangePort(port)} />
+                               autoCorrect={false} autoCompleteType="off" onChangeText={port => onChangePort(port)} />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>RTSP Server Address:</Text>
                     <TextInput style={inputStyle} value={rtspAddress} disabled={disabled} defaultValue={address}
-                               onChangeText={rtspAddress => onChangeRtspAddress(rtspAddress)} autoCapitalize="none" />
+                               autoCorrect={false} autoCompleteType="off" onChangeText={rtspAddress => onChangeRtspAddress(rtspAddress)} autoCapitalize="none" />
                 </View>
                 <View style={styles.formRow}>
                     <Text style={{flex:1, color: colors.text, textAlignVertical: 'center'}}>RTSP Server Port:</Text>
                     <TextInput style={inputStyle} value={rtspPort} disabled={disabled} keyboardType="numeric"
-                               onChangeText={rtspPort => onChangeRtspPort(rtspPort)}/>
+                               autoCorrect={false} autoCompleteType="off" onChangeText={rtspPort => onChangeRtspPort(rtspPort)}/>
                 </View>
                 <View style={{alignItems: 'center', marginTop: 10}}>
                     <Button title="Complete" onPress={() => navigation.navigate('Basic')}
                             disabled={!address} />
                 </View>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
