@@ -30,7 +30,7 @@ import SessionContext from './session-context';
 import {CameraScreen, DirectCameraScreen} from './screens/CameraScreen';
 import EventScreen from './screens/EventScreen';
 import DrawerMenu from './menu';
-import {Button, View, Alert, Text} from 'react-native';
+import {Button, View, Alert, Text, Platform} from 'react-native';
 
 import { MenuProvider } from 'react-native-popup-menu';
 
@@ -154,7 +154,7 @@ const App: () => React$Node = () => {
 
 
     useEffect(() => {
-        SplashScreen.show();
+        (Platform.OS === 'android') && SplashScreen.show();
 
         const msg = messaging();
         msg.onNotificationOpenedApp((message) => setNotification(message));
