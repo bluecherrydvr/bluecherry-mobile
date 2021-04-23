@@ -14,12 +14,13 @@ import {getFreshAccountId, setAccountInfo, setActiveAccount} from '../lib/storag
 
 
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import messaging from "@react-native-firebase/messaging";
+import messaging from '@react-native-firebase/messaging';
 
 const Tab = createMaterialTopTabNavigator();
 
 const ServerConfigContext = createContext({
     id: '',
+    notificationPerm: (Platform.OS === 'android'), onNotificationPerm: () => {},
     address: '', onChangeAddress: () => {},
     port: '', onChangePort: () => {},
     login: '', onChangeLogin: () => {},
@@ -85,6 +86,8 @@ function BasicInfoView() {
 function AdvancedInfoView({navigation}) {
 
     const {
+        id,
+        notificationPerm, onNotificationPerm,
         disabled,
         address, onChangeAddress,
         port, onChangePort,
@@ -125,13 +128,23 @@ function AdvancedInfoView({navigation}) {
                 <View style={{alignItems: 'center', marginTop: 10}}>
                     <Button title="Complete" onPress={() => navigation.navigate('Basic')}
                             disabled={!address} />
+                    {id && !notificationPerm ? <Button title="Allow Notification" onPress={() => requestNotificationPerm().then(perm => onNotificationPerm(perm))}/> : null}
                 </View>
             </View>
         </KeyboardAvoidingView>
     );
 }
 
+async function requestNotificationPerm() {
+    if (Platform.OS === 'android') {
+        return true;
+    }
 
+    const authStatus = await messaging().requestPermission();
+
+    return (authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL);
+}
 
 export default function ServerSettingsScreen({route: {params}, navigation}) {
 
@@ -143,28 +156,31 @@ export default function ServerSettingsScreen({route: {params}, navigation}) {
         name: prevName,
         port: prevPort = '7001',
         rtspAddress: prevRtspAddress,
-        rtspPort: prevRtspPort = '7002'
+        rtspPort: prevRtspPort = '7002',
+        notificationPerm: prevNotificationPerm = (Platform.OS === 'android')
     } = params ?? {};
 
 
 
     const [address, onChangeAddress] = useState(prevAddress);
-    const [port, onChangePort] = useState(prevPort)
+    const [port, onChangePort] = useState(prevPort);
     const [login, onChangeLogin] = useState(prevLogin);
     const [password, onChangePassword] = useState(prevPassword);
     const [rtspAddress, onChangeRtspAddress] = useState(prevRtspAddress);
     const [rtspPort, onChangeRtspPort] = useState(prevRtspPort);
+    const [notificationPerm, onNotificationPerm] = useState(prevNotificationPerm);
 
     const [name, onChangeName] = useState(prevName);
 
 
     const [disabled, setDisabled] = useState(false);
 
-    const saveAccountInfo = (id, serverUuid) => setAccountInfo(id, {
+    const saveAccountInfo = (id, serverUuid, notificationPerm) => setAccountInfo(id, {
         address, port,
         login, password,
         rtspAddress, rtspPort,
-        name, serverUuid
+        name, serverUuid,
+        notificationPerm
     });
 
     const {dispatch, updateAccountList} = useContext(SessionContext);
@@ -184,7 +200,7 @@ export default function ServerSettingsScreen({route: {params}, navigation}) {
 
         try {
             if (id) {
-                await saveAccountInfo(id, serverUuid);
+                await saveAccountInfo(id, serverUuid, notificationPerm);
                 await updateAccountList();
                 navigation.goBack();
                 return;
@@ -193,7 +209,7 @@ export default function ServerSettingsScreen({route: {params}, navigation}) {
             const accountId = await getFreshAccountId();
 
             await Promise.all([
-                saveAccountInfo(accountId, serverUuid),
+                saveAccountInfo(accountId, serverUuid, await requestNotificationPerm()),
                 setActiveAccount(accountId)
             ]);
 
@@ -223,6 +239,7 @@ export default function ServerSettingsScreen({route: {params}, navigation}) {
 
     const contextValue = {
         id,
+        onNotificationPerm, notificationPerm,
         address, onChangeAddress,
         port, onChangePort,
         login, onChangeLogin,

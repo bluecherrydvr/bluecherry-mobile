@@ -4,7 +4,7 @@ import {Button, Image, View, FlatList, Text, ActivityIndicator} from 'react-nati
 
 import Toast from 'react-native-toast-message';
 
-import {getAccountInfoList, setActiveAccount} from '../lib/storage';
+import {setActiveAccount} from '../lib/storage';
 
 import {checkServerCredentials} from '../lib/api';
 
