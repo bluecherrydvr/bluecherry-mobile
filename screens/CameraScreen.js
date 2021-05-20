@@ -1,6 +1,6 @@
 
 import React, {useEffect, useState, useCallback, useContext} from 'react';
-import {View, Text, TouchableOpacity, FlatList, ActivityIndicator} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SplashScreen from 'react-native-splash-screen';
 
@@ -191,19 +191,19 @@ function SetCameraScreen({route: {params: {index, type}}, navigation}) {
 
     }, []);
 
-    return <View style={{flex: 1, justifyContent: 'center'}}>
+    return <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
         {loading ? <ActivityIndicator size="large" color="white"  /> : <FlatList data={state.deviceList} keyExtractor={({id}) => '' + id} renderItem={({item: {id, device_name}}) =>
             <TouchableOpacity style={{marginTop: 5, paddingLeft: 10, paddingRight: 10, paddingTop: 15,
                 paddingBottom: 15, backgroundColor: '#333333'}} onPress={() => onSelectCamera(id)}>
                 <Text style={{color: 'white'}}>#{id} - {device_name}</Text></TouchableOpacity>} />}
-    </View>;
+    </SafeAreaView>;
 }
 
 function ShowCameraScreen({navigation}) {
 
     const {state} = useContext(SessionContext);
 
-    return <View style={{flex: 1, justifyContent: 'center'}}>
+    return <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
         <FlatList data={state.deviceList} keyExtractor={({id}) => '' + id} renderItem={({item: {id, device_name}}) =>
             <TouchableOpacity style={{marginTop: 5, paddingLeft: 10, paddingRight: 10, paddingTop: 15,
                 paddingBottom: 15, backgroundColor: '#333333'}} onPress={() => {
@@ -212,7 +212,7 @@ function ShowCameraScreen({navigation}) {
                 })
             }}>
                 <Text style={{color: 'white'}}>#{id} - {device_name}</Text></TouchableOpacity>} />
-    </View>;
+    </SafeAreaView>;
 }
 
 export function CameraScreen() {

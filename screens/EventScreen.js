@@ -1,6 +1,6 @@
 
 import React, {useEffect, useState, useCallback, useContext, useRef} from 'react';
-import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, SafeAreaView} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {getEvents} from '../lib/api';
 
@@ -67,7 +67,7 @@ function EventList({navigation}) {
         onRefresh();
     }, []);
 
-    return (<View style={{flex: 1}}>
+    return (<SafeAreaView style={{flex: 1}}>
         {lastUpdate && (<View style={{flexDirection: 'row', padding: 10, backgroundColor: '#333333'}}>
             <Text style={{color: 'white'}}>Last Update:</Text><Text style={{color: 'white', marginLeft: 10}}>{lastUpdate}</Text>
         </View>)}
@@ -79,7 +79,7 @@ function EventList({navigation}) {
             renderItem={({item}) => (<TouchableOpacity onPress={() =>
                 navigation.navigate('EventVideoPlayer', {eventId: item.content})}>
                         <EventButton {...item} /></TouchableOpacity>)}/></View>
-    </View>);
+    </SafeAreaView>);
 }
 
 function EventVideoPlayer({route: {params: {eventId}}, navigation}) {
