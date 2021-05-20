@@ -65,7 +65,7 @@ function SinglePlayerSection({type = 0, index = 0, onChange, onRemove, screenDev
 
     if (device) {
         return (<View style={{flex: 1}}>
-            <Player uri={rtspUrl + '/live/' + device.id} />
+            <Player key={'screen_device_' + device.id} uri={rtspUrl + '/live/' + device.id} />
             <Menu style={{backgroundColor: '#333333', position: 'absolute', right: 10, top: 10, padding: 5,  borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}}>
                 <MenuTrigger>
                     <Icon name="tune" size={20} color="#ffffff" />
@@ -128,7 +128,7 @@ function PlayerScreen({navigation}) {
         const selectedDeviceList = await setSelectedCamera(state.activeAccount.id, type, index,
             null, state.selectedDeviceList);
         dispatch({type: 'update_selected_device_list', payload: selectedDeviceList});
-    }, []);
+    }, [state.selectedDeviceList, state.activeAccount]);
 
     const screens = [
         ['1', <SinglePlayerSection onChange={onAddCamera} onRemove={onRemoveCamera} screenDevices={screenDevices} rtspUrl={rtspUrl} />],
