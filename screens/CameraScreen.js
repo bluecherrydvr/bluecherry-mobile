@@ -23,6 +23,8 @@ import {getRtspAddressByCredentials} from '../lib/util';
 
 import PlayerError from '../components/PlayerError';
 
+import ToggleNavigationButton from '../components/ToggleNavigationButton';
+
 const Stack = createStackNavigator();
 
 
@@ -142,6 +144,9 @@ function PlayerScreen({navigation}) {
             {screens.map(([target], index) =>
                 <ScreenButton key={index} name={target} active={index === activeScreen} onPress={() => setActiveScreen(index)} />)}
         </View>
+        <View style={{position: 'absolute', top:10, left:20}}>
+            <ToggleNavigationButton />
+        </View>
     </View>);
 }
 
@@ -225,7 +230,7 @@ export function CameraScreen() {
 
 export function DirectCameraScreen() {
     return (<Stack.Navigator>
-            <Stack.Screen name="DeviceShowCamera" options={{title: 'Show Camera'}} component={ShowCameraScreen} />
+        <Stack.Screen name="DeviceShowCamera" options={{title: 'Show Camera', headerLeft: () => <View style={{paddingLeft:15}}><ToggleNavigationButton /></View>}} component={ShowCameraScreen} />
             <Stack.Screen name="DeviceDirectPlay" options={{headerShown: false}}  component={DirectPlayScreen} />
         </Stack.Navigator>);
 }

@@ -15,6 +15,8 @@ import SessionContext from '../session-context';
 import {Menu, MenuOption, MenuOptions, MenuTrigger} from "react-native-popup-menu";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
+import ToggleNavigationButton from '../components/ToggleNavigationButton';
+
 const Stack = createStackNavigator();
 
 function Player({uri}) {
@@ -106,7 +108,7 @@ function EventVideoPlayer({route: {params: {eventId}}, navigation}) {
 
 export default function EventScreen() {
     return (<Stack.Navigator>
-        <Stack.Screen name="EventList" options={{title: 'Events'}} component={EventList} />
+        <Stack.Screen name="EventList" options={{title: 'Events', headerLeft: () => <View style={{paddingLeft:15}}><ToggleNavigationButton /></View>}} component={EventList} />
         <Stack.Screen name="EventVideoPlayer" options={{headerShown: false}} component={EventVideoPlayer} />
     </Stack.Navigator>);
 }
