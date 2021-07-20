@@ -22,7 +22,7 @@
     "@react-navigation/stack": "^5.14.2",
     "fast-xml-parser": "^3.18.0",
     "react": "16.13.1",
-    "react-native": "0.63.4",
+    "react-native": "0.64.1",
     "react-native-gesture-handler": "^1.9.0",
     "react-native-get-random-values": "^1.5.1",
     "react-native-orientation-locker": "^1.2.0",
