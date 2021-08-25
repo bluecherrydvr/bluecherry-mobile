@@ -68,7 +68,6 @@ function EventList({navigation}) {
     useEffect(() => {
         onRefresh();
     }, []);
-console.log('eventList===',eventList)
     return (<SafeAreaView style={{flex: 1}}>
         {lastUpdate && (<View style={{flexDirection: 'row', padding: 10, backgroundColor: '#333333'}}>
             <Text style={{color: 'white'}}>Last Update:</Text><Text style={{color: 'white', marginLeft: 10}}>{lastUpdate}</Text>
