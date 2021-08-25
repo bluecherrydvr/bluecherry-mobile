@@ -103,9 +103,9 @@ const App: () => React$Node = () => {
         }
 
         const [id, accountRecord] = targetAccount;
-        const {address, login, password} = accountRecord;
+        const {address, login, password, port} = accountRecord;
 
-        checkServerCredentials('https://' + address, login, password).then(status => {
+        checkServerCredentials('https://' + address+ (port ? ':' + port : ''), login, password).then(status => {
             if (status !== false) {
                 dispatch({
                     type: 'login',

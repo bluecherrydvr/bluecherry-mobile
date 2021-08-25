@@ -2,6 +2,8 @@
 import React, {useEffect, useState, useCallback, useContext, useRef} from 'react';
 import {View, Text, FlatList, TouchableOpacity, SafeAreaView} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import dayJs from 'dayjs';
+
 import {getEvents} from '../lib/api';
 
 import {getAddressByCredentials} from '../lib/util';
@@ -18,6 +20,8 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import ToggleNavigationButton from '../components/ToggleNavigationButton';
 
 const Stack = createStackNavigator();
+
+const dateFormat = 'M-D-YY h:m:s A';
 
 function Player({uri}) {
     const [error, setError] = useState(false);
@@ -42,7 +46,7 @@ function EventButton({id, title, published, updated, active, current}) {
         marginTop: 5, paddingLeft: 10, paddingRight: 10, paddingTop:15,
         paddingBottom:15}}>
         <View><Text style={{color: active ? 'white' : '#777777'}}>{title}</Text></View>
-        {updated ? <View><Text style={{color: active ? 'white' : '#777777'}}>Updated: {updated}</Text></View> :
+        {updated ? <View><Text style={{color: active ? 'white' : '#777777'}}>Updated: {dayJs(updated).format(dateFormat)}</Text></View> :
             (published ? <View><Text style={{color: active ? 'white' : '#777777'}}>Published: {published}</Text></View> : null)}
     </View>);
 }
@@ -51,16 +55,14 @@ function EventButton({id, title, published, updated, active, current}) {
 function EventList({navigation}) {
 
     const {state} = useContext(SessionContext);
-
     const [lastUpdate, setLastUpdate] = useState();
     const [eventList, setEventList] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
-
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         getEvents(getAddressByCredentials(state.activeAccount)).then(([list, update]) => {
             setEventList(list);
-            setLastUpdate(update);
+            setLastUpdate(dayJs(update).format(dateFormat));
             setRefreshing(false);
         });
     }, [state.activeAccount]);
@@ -68,7 +70,6 @@ function EventList({navigation}) {
     useEffect(() => {
         onRefresh();
     }, []);
-
     return (<SafeAreaView style={{flex: 1}}>
         {lastUpdate && (<View style={{flexDirection: 'row', padding: 10, backgroundColor: '#333333'}}>
             <Text style={{color: 'white'}}>Last Update:</Text><Text style={{color: 'white', marginLeft: 10}}>{lastUpdate}</Text>
