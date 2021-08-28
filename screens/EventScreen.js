@@ -21,7 +21,7 @@ import ToggleNavigationButton from '../components/ToggleNavigationButton';
 
 const Stack = createStackNavigator();
 
-const dateFormat = 'M-D-YY h:m:s A';
+const dateFormat = 'M-D-YY h:mm:s A';
 
 function Player({uri}) {
     const [error, setError] = useState(false);
