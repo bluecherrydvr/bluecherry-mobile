@@ -1,18 +1,17 @@
-
 import {StyleSheet} from 'react-native';
 
 export default StyleSheet.create({
-    formRow: {
-        flexDirection: 'row',
-        marginBottom: 10
-    },
-    textInput: {
-        flex:1,
-        height: 40,
-        borderWidth: 1
-    }
+  formRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    alignItems: 'center'
+  },
+  textInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+  },
 });
-
 
 /*
 const styles = StyleSheet.create({

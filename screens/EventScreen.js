@@ -1,40 +1,27 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useContext,
-  useRef,
-} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  SafeAreaView,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
-import {
-  Menu,
-  MenuOption,
-  MenuOptions,
-  MenuTrigger,
-} from 'react-native-popup-menu';
+import React, {useEffect, useState, useCallback, useContext, useRef} from 'react';
+import {View, Text, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator, StyleSheet} from 'react-native';
+import {Menu, MenuOption, MenuOptions, MenuTrigger} from 'react-native-popup-menu';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Micon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createStackNavigator} from '@react-navigation/stack';
 import dayJs from 'dayjs';
 import {VLCPlayer} from 'react-native-vlc-media-player';
-
+import * as RNLocalize from 'react-native-localize';
 import {getEvents} from '../lib/api';
 import {getAddressByCredentials} from '../lib/util';
 import PlayerError from '../components/PlayerError';
 import SessionContext from '../session-context';
 import ToggleNavigationButton from '../components/ToggleNavigationButton';
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+dayJs.extend(utc);
+dayJs.extend(timezone);
 
 const Stack = createStackNavigator();
-
-const dateFormat = 'M-D-YY h:mm:s A';
+const getLocalTime = (dateTime, dateFormat) => {
+  const localTimezone = RNLocalize.getTimeZone();
+  return dayJs(dateTime).utc().local().tz(localTimezone).format(dateFormat);
+};
 function Player({uri}) {
   const [error, setError] = useState(false);
   const [stopped, setStopped] = useState(false);
@@ -70,11 +57,7 @@ function Player({uri}) {
   return (
     <View style={{flex: 1}}>
       {loading && (
-        <ActivityIndicator
-          style={{position: 'absolute', top: 0, left: 0, right: 0}}
-          size="large"
-          color="white"
-        />
+        <ActivityIndicator style={{position: 'absolute', top: 0, left: 0, right: 0}} size="large" color="white" />
       )}
       <VLCPlayer
         ref={player}
@@ -91,7 +74,7 @@ function Player({uri}) {
   );
 }
 
-function EventButton({id, title, published, updated, active, current}) {
+function EventButton({id, title, published, updated, active, current, dateFormat}) {
   return (
     <View
       style={{
@@ -107,15 +90,11 @@ function EventButton({id, title, published, updated, active, current}) {
       </View>
       {updated ? (
         <View>
-          <Text style={{color: active ? 'white' : '#777777'}}>
-            Updated: {dayJs(updated).format(dateFormat)}
-          </Text>
+          <Text style={{color: active ? 'white' : '#777777'}}>Updated: {getLocalTime(updated, dateFormat)}</Text>
         </View>
       ) : published ? (
         <View>
-          <Text style={{color: active ? 'white' : '#777777'}}>
-            Published: {published}
-          </Text>
+          <Text style={{color: active ? 'white' : '#777777'}}>Published: {published}</Text>
         </View>
       ) : null}
     </View>
@@ -127,16 +106,16 @@ function EventList({navigation}) {
   const [lastUpdate, setLastUpdate] = useState();
   const [eventList, setEventList] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const dateFormat = state.activeAccount.dateFormat;
 
+  console.log('Timezone=====>', RNLocalize.getTimeZone());
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    getEvents(getAddressByCredentials(state.activeAccount)).then(
-      ([list, update]) => {
-        setEventList(list);
-        setLastUpdate(dayJs(update).format(dateFormat));
-        setRefreshing(false);
-      },
-    );
+    getEvents(getAddressByCredentials(state.activeAccount)).then(([list, update]) => {
+      setEventList(list);
+      setLastUpdate(getLocalTime(update, dateFormat));
+      setRefreshing(false);
+    });
   }, [state.activeAccount]);
 
   useEffect(() => {
@@ -171,7 +150,7 @@ function EventList({navigation}) {
                   index,
                 })
               }>
-              <EventButton {...item} />
+              <EventButton dateFormat={dateFormat} {...item} />
             </TouchableOpacity>
           )}
         />
@@ -247,25 +226,15 @@ function EventVideoPlayer({
     <View style={{flex: 1}}>
       <Player
         key={'event_video_' + eventId}
-        uri={
-          getAddressByCredentials(state.activeAccount, true) +
-          '/media/request.php?id=' +
-          eventId
-        }
+        uri={getAddressByCredentials(state.activeAccount, true) + '/media/request.php?id=' + eventId}
       />
       <TouchableOpacity
-        style={[
-          eventVideoPlayerStyles.commonNextPreviousButton,
-          eventVideoPlayerStyles.previousButton,
-        ]}
+        style={[eventVideoPlayerStyles.commonNextPreviousButton, eventVideoPlayerStyles.previousButton]}
         onPress={() => previousEvent()}>
         <Micon name="page-previous-outline" size={25} color="#ffffff" />
       </TouchableOpacity>
       <TouchableOpacity
-        style={[
-          eventVideoPlayerStyles.commonNextPreviousButton,
-          eventVideoPlayerStyles.nextButton,
-        ]}
+        style={[eventVideoPlayerStyles.commonNextPreviousButton, eventVideoPlayerStyles.nextButton]}
         onPress={() => nextEvent()}>
         <Micon name="page-next-outline" size={25} color="#ffffff" />
       </TouchableOpacity>
@@ -284,10 +253,7 @@ function EventVideoPlayer({
           <Icon name="tune" size={20} color="#ffffff" />
         </MenuTrigger>
         <MenuOptions>
-          <MenuOption
-            text="Events"
-            onSelect={() => navigation.navigate('EventList')}
-          />
+          <MenuOption text="Events" onSelect={() => navigation.navigate('EventList')} />
         </MenuOptions>
       </Menu>
     </View>
@@ -309,11 +275,7 @@ export default function EventScreen() {
         }}
         component={EventList}
       />
-      <Stack.Screen
-        name="EventVideoPlayer"
-        options={{headerShown: false}}
-        component={EventVideoPlayer}
-      />
+      <Stack.Screen name="EventVideoPlayer" options={{headerShown: false}} component={EventVideoPlayer} />
     </Stack.Navigator>
   );
 }

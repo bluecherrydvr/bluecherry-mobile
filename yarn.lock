@@ -1251,6 +1251,16 @@
   version "11.2.0"
   resolved "https://registry.npmjs.org/@react-native-firebase/messaging/-/messaging-11.2.0.tgz"
 
+"@react-native-picker/picker@^1.8.3":
+  version "1.16.8"
+  resolved "https://registry.yarnpkg.com/@react-native-picker/picker/-/picker-1.16.8.tgz#2126ca54d4a5a3e9ea5e3f39ad1e6643f8e4b3d4"
+  integrity sha512-pacdQDX6V6EmjF+HoiIh6u++qx4mTK0WnhgUHRc01B+Qt5eoeUwseBqmqfTSXTx/aHDEd6PiIw7UGvKgFoqgFQ==
+
+"@react-native-picker/picker@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@react-native-picker/picker/-/picker-2.1.0.tgz#1ef22d4e9b2e555d44b43453f51a46d8631f3182"
+  integrity sha512-iJ/QaDrBMBaW6cFuQyR3DXzcn2h7c5O7mGgmNLCBQHTTtLNBZR+Sxogy6YleFPeToNdysG5mTTkXqBmlWHMQqg==
+
 "@react-native/assets@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@react-native/assets/-/assets-1.0.0.tgz#c6f9bf63d274bafc8e970628de24986b30a55c8e"
@@ -2291,6 +2301,11 @@ data-urls@^1.1.0:
     abab "^2.0.0"
     whatwg-mimetype "^2.2.0"
     whatwg-url "^7.0.0"
+
+dayjs@^1.10.7:
+  version "1.10.7"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.7.tgz#2cf5f91add28116748440866a0a1d26f3a6ce468"
+  integrity sha512-P6twpd70BcPK34K26uJ1KT3wlhpuOAPoMwJzpsIWUxHZ7wpmbdZL/hQqBDfz7hGurYSa5PhzdhDHtt319hL3ig==
 
 dayjs@^1.8.15:
   version "1.10.4"
@@ -4093,13 +4108,13 @@ json5@^2.1.2:
 jsonfile@^2.1.0:
   version "2.4.0"
   resolved "https://registry.npmjs.org/jsonfile/-/jsonfile-2.4.0.tgz"
-  dependencies:
+  optionalDependencies:
     graceful-fs "^4.1.6"
 
 jsonfile@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz"
-  dependencies:
+  optionalDependencies:
     graceful-fs "^4.1.6"
 
 jsonify@~0.0.0:
@@ -4149,7 +4164,7 @@ kind-of@^6.0.0, kind-of@^6.0.1, kind-of@^6.0.2:
 klaw@^1.0.0:
   version "1.3.1"
   resolved "https://registry.npmjs.org/klaw/-/klaw-1.3.1.tgz"
-  dependencies:
+  optionalDependencies:
     graceful-fs "^4.1.9"
 
 kleur@^3.0.3:
@@ -5253,9 +5268,22 @@ react-native-iphone-x-helper@^1.3.0:
   version "1.3.1"
   resolved "https://registry.npmjs.org/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.3.1.tgz"
 
+react-native-localize@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/react-native-localize/-/react-native-localize-2.1.4.tgz#d4a41d9e03908c739e436dba9499b9e761b4e2f6"
+  integrity sha512-Cvow7TSUsyIPj6ddxqT2GnKexQ//Q2Ur6KAQSXIcrjvE2K7KzbbveMpGsBK0oKvF9X+5DcVVED3EVdZXcrEoBw==
+
 react-native-orientation-locker@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/react-native-orientation-locker/-/react-native-orientation-locker-1.2.0.tgz"
+
+react-native-picker-select@^8.0.4:
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-picker-select/-/react-native-picker-select-8.0.4.tgz#3f7f1f42df69b06e7d2c10338288332a6c40fd10"
+  integrity sha512-orBjPIwBkV5oipyVw263YNMI56f6Kj3p/ejabZoCYYNSG3AiLVVhC2RqsxMgDA7IayyURAW+AlV+mDJyVqLBkg==
+  dependencies:
+    "@react-native-picker/picker" "^1.8.3"
+    lodash.isequal "^4.5.0"
 
 react-native-popup-menu@^0.15.10:
   version "0.15.10"
