@@ -254,6 +254,7 @@
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
 				55E78CC082DE139C639C7186 /* [CP] Copy Pods Resources */,
+				B73879FBDDF18E9949160523 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -277,6 +278,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				9E0986266253E89F2DFB6D5E /* [CP] Copy Pods Resources */,
 				D5BADEF290052945487B7F2F /* [CP-User] [RNFB] Core Configuration */,
+				BB1EB677582704C98F86C4F6 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -602,6 +604,42 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BluecherryDvr/Pods-BluecherryDvr-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B73879FBDDF18E9949160523 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BluecherryDvr-BluecherryDvrTests/Pods-BluecherryDvr-BluecherryDvrTests-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL/OpenSSL.framework/OpenSSL",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BluecherryDvr-BluecherryDvrTests/Pods-BluecherryDvr-BluecherryDvrTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BB1EB677582704C98F86C4F6 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BluecherryDvr/Pods-BluecherryDvr-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL/OpenSSL.framework/OpenSSL",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BluecherryDvr/Pods-BluecherryDvr-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		D5BADEF290052945487B7F2F /* [CP-User] [RNFB] Core Configuration */ = {
