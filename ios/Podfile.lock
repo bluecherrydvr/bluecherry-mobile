@@ -429,7 +429,7 @@ PODS:
     - React-Core
   - RNLocalize (2.1.9):
     - React-Core
-  - RNReanimated (2.4.0):
+  - RNReanimated (2.2.4):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -455,6 +455,7 @@ PODS:
     - React-RCTNetwork
     - React-RCTSettings
     - React-RCTText
+    - React-RCTVibration
     - ReactCommon/turbomodule/core
     - Yoga
   - RNScreens (2.18.0):
@@ -731,7 +732,7 @@ SPEC CHECKSUMS:
   RNFBMessaging: bab6a3073a3ac1ecff593c74b4f797cbc6cca562
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNLocalize: 291e5e21b53cd30b5205c10ed95d31b0dc9b8d63
-  RNReanimated: 17e828d603c7ed3c25d332c0cdbb037838dc53a9
+  RNReanimated: e28dfaa950064b674fde0a9b736e62b9dff500a7
   RNScreens: f0d7a2a440a8ba9f4574ca1ddb3368f473891be4
   RNVectorIcons: 31cebfcf94e8cf8686eb5303ae0357da64d7a5a4
   toolbar-android: 85f3ef4d691469f2d304e7dee4bca013aa1ba1ff
