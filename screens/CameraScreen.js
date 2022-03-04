@@ -38,10 +38,11 @@ function Player({uri}) {
         initOptions: [
           '--no-audio',
           '--rtsp-tcp',
-          '--network-caching=150',
+          '--network-caching=0',
           '--rtsp-caching=150',
           '--no-stats',
           '--tcp-caching=150',
+	  '--rtsp-frame-buffer-size=500000',
           '--realrtsp-caching=150',
         ],
       }}
